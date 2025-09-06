@@ -3,6 +3,7 @@
 #include <array>
 #include <exception>
 #include <fstream>
+#include <string>
 
 #include "Matrix.hpp"
 #include "Vector.hpp"
@@ -34,7 +35,7 @@ private:
 	Layer<OutputSize, HiddenLayerSize> OutputLayer;
 	Layer<HiddenLayerSize, InputSize> FirstLayer;
 	std::vector<Layer<HiddenLayerSize, HiddenLayerSize>> HiddenLayers;
-	std::vector<double> ProcessingData;
+	std::vector<std::vector<int>> ProcessingData;
 
 	void BackPropActivation() {
 
@@ -90,28 +91,36 @@ public:
 	}
 	void LoadTrainingData(const char* FileName) {
 		std::ifstream TrainingData(FileName);
-		std::vector<std::vector<double>> whole;
-		std::string TrainingInput;
-		std::string value;
-		while (getline(TrainingData, TrainingInput, '\n')) {
-			std::vector<double> line;
-			for (const char& digit : TrainingInput) {
-				if (digit == ',') {
-					line.push_back(std::stoi(value));
-					value = "";
-				}
-				else {
-					value += digit;
-				}
-
+		
+		char character;
+		std::string number;
+		std::vector<int> row;
+		row.reserve(785);
+		ProcessingData.reserve(60000);
+		ProcessingData.resize(60000);
+		for (std::vector<int>& index : ProcessingData) {
+			index.reserve(785);
+		}
+		int index = 0;
+		while (TrainingData.get(character)) {
+			if (character == ',') {
+				row.push_back(std::stoi(number));
+				
+				number.clear();
+			}
+			else if (character == '\n') {
+				ProcessingData[index] = row;
+				row.clear();
+				index++;
+			}
+			else if (character >= 48 && character <= 57) {
+				number += character;
 			}
 			
-			line.push_back(std::stoi(value));
-			whole.push_back(line);
 		}
-		std::cout << whole.size() << std::endl;
-		//std::cout << whole[0].size() << std::endl;
 		TrainingData.close();
+		std::cout << ProcessingData.size() << std::endl;
+		std::cout << ProcessingData[34534].size() << std::endl;
 	}
 	void Train() {
 
