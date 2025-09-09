@@ -2,21 +2,32 @@
 #include "Vector.hpp"
 #include "Matrix.hpp"
 
-
+double Sigmoid(double x) {
+	return 1 / (1 + exp(-x));
+}
 
 template<size_t size>
 void Sigmoidify(Vector<size>& vector) {
 	for (int index = 0; index < size; index++) {
-		vector[index] = 1 / (1 + exp(-vector[index]));
+		vector[index] = Sigmoid(vector[index]);
 	}
+}
+
+template<size_t size>
+Vector<size> SigmoidifiedDerivative(const Vector<size> vector) {
+	Vector<size> result;
+	for (int index = 0; index < vector.GetSize(); index++) {
+		result[index] = Sigmoid(result[index]) * (1 - Sigmoid(result[index]));
+	}
+	return result;
 }
 
 
 enum ActivationType {
+	NONE,
 	RELU,
 	SOFTMAX,
-	SIGMOID,
-	NONE
+	SIGMOID
 };
 
 template<size_t CurLayerSize, size_t PrevLayerSize>
@@ -25,6 +36,7 @@ private:
 	Vector<CurLayerSize> LayerNeurons;
 	Vector<CurLayerSize> LayerActivatedNeurons;
 	Vector<CurLayerSize> LayerBiases;
+	Vector<CurLayerSize> LayerErrorDeltas;
 	Matrix<CurLayerSize, PrevLayerSize> LayerWeights;
 	ActivationType type;
 	void (*ApplyActivation)(Vector<CurLayerSize>& vector);
@@ -64,17 +76,23 @@ public:
 	const Vector<CurLayerSize>& GetLayerNeurons() const {
 		return LayerNeurons;
 	}
+	const Matrix<CurLayerSize, PrevLayerSize>& GetLayerWeights() const {
+		return LayerWeights;
+	}
 	const Vector<CurLayerSize>& GetLayerBiases() const {
 		return LayerBiases;
 	}
-	const Matrix<CurLayerSize, PrevLayerSize>& GetLayerWeights() const {
-		return LayerWeights;
+	const Vector<CurLayerSize>& GetLayerErrorDeltas() const {
+		return LayerErrorDeltas;
 	}
 	const ActivationType& GetActivationType() const {
 		return type;
 	}
 	const Vector<CurLayerSize>& GetLayerActivatedNeurons() const {
 		return LayerActivatedNeurons;
+	}
+	const int& GetSize() const {
+		return CurLayerSize;
 	}
 
 	void SetLayerNeurons(const Vector<CurLayerSize>& neurons) {
@@ -86,6 +104,9 @@ public:
 	}
 	void SetLayerBiases(const Vector<CurLayerSize>& biases) {
 		LayerBiases = biases;
+	}
+	void SetLayerErrorDeltas(const Vector<CurLayerSize>& ErrorDeltas) {
+		LayerErrorDeltas = ErrorDeltas;
 	}
 
 	template<size_t PrevSize, size_t PrevPrevSize>

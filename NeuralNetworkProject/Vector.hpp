@@ -29,7 +29,15 @@ public:
 			VectorArray[index] = vector[index];
 		}
 	}
-	Vector(std::initializer_list<double> vector) {
+	Vector(const std::initializer_list<double>& vector) {
+		VectorArray.reserve(size);
+		VectorArray.resize(size);
+		int index = 0;
+		for (const double& val : vector) {
+			VectorArray[index++] = val;
+		}
+	}
+	Vector(const std::vector<double>& vector) {
 		VectorArray.reserve(size);
 		VectorArray.resize(size);
 		int index = 0;

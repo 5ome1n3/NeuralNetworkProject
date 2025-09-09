@@ -52,10 +52,20 @@ public:
 		
 	}
 
-	int GetRowLength() {
+	const Matrix<cols, rows> GetTransposed() const {
+		Matrix<cols, rows> matrix;
+		for (int row = 0; rows < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				matrix[col][row] = MatrixArray[row][col];
+			}
+		}
+		return matrix;
+	}
+
+	int GetRowLength() const {
 		return rows;
 	}
-	int GetColumnLength() {
+	int GetColumnLength() const {
 		return cols;
 	}
 
@@ -105,7 +115,7 @@ public:
 		}
 		return result;
 	}
-	Vector<rows> operator*(const Vector<cols>& vector) {
+	Vector<rows> operator*(const Vector<cols>& vector) const {
 		Vector<rows> result;
 		for (int row = 0; row < rows; row++) {
 			for (int index = 0; index < cols; index++) {

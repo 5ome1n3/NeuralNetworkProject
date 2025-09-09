@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
     int LearningRate = 0.5;
     NeuralNetwork<InputSize, OutputSize, LayerSize, LayerCount> nn(LearningRate, SIGMOID);
     
-    nn.LoadTrainingData("mnist_train.csv");
+    nn.LoadTrainingData("mnist_train.csv", 10000);
 
-    nn.PropogateForward();
+    nn.Train();
 
 }

@@ -27,17 +27,56 @@ public:
 
 using count_t = unsigned long long;
 
-template<size_t InputSize, size_t OutputSize, size_t HiddenLayerSize, count_t HiddenLayerCount>
+template<const size_t InputSize, const size_t OutputSize, const size_t HiddenLayerSize, const count_t HiddenLayerCount>
 class NeuralNetwork {
 private:
 	double InitialLearningRate;
 	Layer<InputSize, 0> InputLayer;
 	Layer<OutputSize, HiddenLayerSize> OutputLayer;
-	Layer<HiddenLayerSize, InputSize> FirstLayer;
+	Layer<HiddenLayerSize, InputSize> FirstHiddenLayer;
 	std::vector<Layer<HiddenLayerSize, HiddenLayerSize>> HiddenLayers;
-	std::vector<std::vector<int>> ProcessingData;
+	std::vector<std::vector<double>> ProcessingData;
+	int CurrentTargetIndex;
 
-	void BackPropActivation() {
+	void BackPropActivations() {
+		// calculates error delta for output layer
+		Vector<OutputSize> OutputLayerDerivatives = SigmoidifiedDerivative(OutputLayer.GetLayerNeurons());
+		Vector<OutputSize> ErrorDeltas;
+		for (int index = 0; index < ErrorDeltas.GetSize(); index++) {
+			if (index == CurrentTargetIndex) {
+				ErrorDeltas[index] = 2 * (OutputLayer.GetLayerActivatedNeurons()[index] - 1);
+			}
+			else {
+				ErrorDeltas[index] = 2 * (OutputLayer.GetLayerActivatedNeurons()[index]);
+			}
+		}
+		OutputLayer.SetLayerErrorDeltas(ErrorDeltas * OutputLayerDerivatives);
+
+		if (HiddenLayerCount > 1) {
+			// calculates error deltas for rest of layers
+			// next layer weights, cur layer error deltas, cur layer neurons, next layer error deltas
+			for (int index = HiddenLayerCount-2; index >= 0; index--) {
+				Vector<HiddenLayerSize> CurrentLayerDerivatives = SigmoidifiedDerivative(HiddenLayers[index].GetLayerNeurons());
+				if (index == HiddenLayerCount-2) {
+					HiddenLayers[index].SetLayerErrorDeltas((OutputLayer.GetLayerWeights().GetTransposed() * OutputLayer.GetLayerErrorDeltas()) * CurrentLayerDerivatives);
+				}
+				else {
+					HiddenLayers[index].SetLayerErrorDeltas((HiddenLayers[index + 1].GetLayerWeights().GetTransposed() * HiddenLayers[index + 1].GetLayerErrorDeltas()) * CurrentLayerDerivatives);
+				}
+			}
+			Vector<HiddenLayerSize> CurrentLayerDerivatives = SigmoidifiedDerivative(FirstHiddenLayer.GetLayerNeurons());
+			FirstHiddenLayer.SetLayerErrorDeltas((HiddenLayers[0].GetLayerWeights().GetTransposed() * HiddenLayers[0].GetLayerErrorDeltas()) * CurrentLayerDerivatives);
+		}
+		else {
+			Vector<HiddenLayerSize> CurrentLayerDerivatives = SigmoidifiedDerivative(FirstHiddenLayer.GetLayerNeurons());
+			FirstHiddenLayer.SetLayerErrorDeltas((OutputLayer.GetLayerWeights().GetTransposed() * OutputLayer.GetLayerErrorDeltas()) * CurrentLayerDerivatives);
+		}
+		
+	}
+	void BackPropWeights() {
+
+	}
+	void BackPropBiases() {
 
 	}
 	
@@ -46,7 +85,7 @@ public:
 		:InitialLearningRate(InitialLearningRate)
 	{
 		if (HiddenLayerCount < 1) {
-			throw HiddenLayerCountException("hidden layer count must be greater than 1");
+			throw HiddenLayerCountException("hidden layer count must be greater than 0");
 		}
 		HiddenLayers.reserve(HiddenLayerCount - 1);
 		HiddenLayers.resize(HiddenLayerCount - 1);
@@ -57,7 +96,7 @@ public:
 		:InitialLearningRate(InitialLearningRate)
 	{
 		if (HiddenLayerCount < 1) {
-			throw HiddenLayerCountException("hidden layer count must be greater than 1");
+			throw HiddenLayerCountException("hidden layer count must be greater than 0");
 		}
 		HiddenLayers.reserve(HiddenLayerCount - 1);
 		HiddenLayers.resize(HiddenLayerCount - 1);
@@ -69,7 +108,7 @@ public:
 	}
 
 	void PropogateForward() {
-		FirstLayer.CalcForwardProp(InputLayer);
+		FirstHiddenLayer.CalcForwardProp(InputLayer);
 
 
 		for (int index = 1; index < HiddenLayers.size();index++) {
@@ -77,35 +116,37 @@ public:
 		}
 
 		if (HiddenLayerCount == 1) {
-			OutputLayer.CalcForwardProp(FirstLayer);
+			OutputLayer.CalcForwardProp(FirstHiddenLayer);
 			return;
 		}
 
 		if (HiddenLayerCount == 2) {
-			HiddenLayers[0].CalcForwardProp(FirstLayer);
+			HiddenLayers[0].CalcForwardProp(FirstHiddenLayer);
 		}
 		OutputLayer.CalcForwardProp(HiddenLayers.back());
 	}
-	void PropogateBackward() {
-
+	void PropogateBackwards() {
+		BackPropActivations();
+		BackPropWeights();
+		BackPropBiases();
 	}
-	void LoadTrainingData(const char* FileName) {
+	using CSV_FILE = const char*;
+	void LoadTrainingData(CSV_FILE FileName, size_t RowNum) {
 		std::ifstream TrainingData(FileName);
 		
 		char character;
 		std::string number;
-		std::vector<int> row;
-		row.reserve(785);
-		ProcessingData.reserve(60000);
-		ProcessingData.resize(60000);
-		for (std::vector<int>& index : ProcessingData) {
-			index.reserve(785);
+		std::vector<double> row;
+		row.reserve(InputSize+1);
+		ProcessingData.resize(RowNum);
+		
+		for (std::vector<double>& index : ProcessingData) {
+			index.reserve(InputSize+1);
 		}
 		int index = 0;
-		while (TrainingData.get(character)) {
+		while (TrainingData.get(character) && index < RowNum) {
 			if (character == ',') {
-				row.push_back(std::stoi(number));
-				
+				row.push_back(std::stod(number));
 				number.clear();
 			}
 			else if (character == '\n') {
@@ -119,10 +160,15 @@ public:
 			
 		}
 		TrainingData.close();
-		std::cout << ProcessingData.size() << std::endl;
-		std::cout << ProcessingData[34534].size() << std::endl;
 	}
 	void Train() {
-
+		for (const std::vector<double>& row : ProcessingData) {
+			CurrentTargetIndex = row[0];
+			std::vector<double> temp = { row.begin() + 1, row.end() };
+			InputLayer.SetLayerNeurons(temp);
+			PropogateForward();
+			PropogateBackwards();
+		}
+		
 	}
 };
