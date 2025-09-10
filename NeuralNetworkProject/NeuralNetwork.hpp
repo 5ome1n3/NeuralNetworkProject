@@ -25,6 +25,15 @@ public:
 	
 };
 
+template<size_t size>
+int GetMaxValue(Vector<size> vector) {
+	double value = 0;
+	for (int index = 0; index < vector.GetSize(); index++) {
+		value = std::max(value, vector[index]);
+	}
+	return value;
+}
+
 using count_t = unsigned long long;
 
 template<const size_t InputSize, const size_t OutputSize, const size_t HiddenLayerSize, const count_t HiddenLayerCount>
@@ -37,7 +46,7 @@ private:
 	std::vector<Layer<HiddenLayerSize, HiddenLayerSize>> HiddenLayers;
 	std::vector<std::vector<double>> ProcessingData;
 	int CurrentTargetIndex;
-
+	int count = 0;
 	void BackPropActivations() {
 		// calculates error delta for output layer
 		Vector<OutputSize> OutputLayerDerivatives = SigmoidifiedDerivative(OutputLayer.GetLayerNeurons());
@@ -55,9 +64,9 @@ private:
 		if (HiddenLayerCount > 1) {
 			// calculates error deltas for rest of layers
 			// next layer weights, cur layer error deltas, cur layer neurons, next layer error deltas
-			for (int index = HiddenLayerCount-2; index >= 0; index--) {
+			for (int index = HiddenLayerCount - 2; index >= 0; index--) {
 				Vector<HiddenLayerSize> CurrentLayerDerivatives = SigmoidifiedDerivative(HiddenLayers[index].GetLayerNeurons());
-				if (index == HiddenLayerCount-2) {
+				if (index == HiddenLayerCount - 2) {
 					HiddenLayers[index].SetLayerErrorDeltas((OutputLayer.GetLayerWeights().GetTransposed() * OutputLayer.GetLayerErrorDeltas()) * CurrentLayerDerivatives);
 				}
 				else {
@@ -74,10 +83,59 @@ private:
 		
 	}
 	void BackPropWeights() {
+		
+		if (HiddenLayerCount > 1) {
+			for (int row = 0; row < OutputSize; row++) {
+				for (int col = 0; col < HiddenLayerSize; col++) {
+					OutputLayer.GetLayerWeights()[row][col] -= HiddenLayers.back().GetLayerActivatedNeurons()[col] * OutputLayer.GetLayerErrorDeltas()[row] * InitialLearningRate;
+				}
+			}
+			for (int index = HiddenLayerCount - 2; index >= 1; index--) {
+				for (int row = 0; row < HiddenLayerSize; row++) {
+					for (int col = 0; col < HiddenLayerSize; col++) {
+						HiddenLayers[index].GetLayerWeights()[row][col] -= HiddenLayers[index - 1].GetLayerActivatedNeurons()[col] * HiddenLayers[index].GetLayerErrorDeltas()[row] * InitialLearningRate;
+					}
+				}
+			}
+			for (int row = 0; row < HiddenLayerSize; row++) {
+				for (int col = 0; col < HiddenLayerSize; col++) {
+					HiddenLayers[0].GetLayerWeights()[row][col] -= FirstHiddenLayer.GetLayerActivatedNeurons()[col] * HiddenLayers[0].GetLayerErrorDeltas()[row] * InitialLearningRate;
+				}
+			}
+			for (int row = 0; row < HiddenLayerSize; row++) {
+				for (int col = 0; col < InputSize; col++) {
+					FirstHiddenLayer.GetLayerWeights()[row][col] -= InputLayer.GetLayerActivatedNeurons()[col] * FirstHiddenLayer.GetLayerErrorDeltas()[row] * InitialLearningRate;
+				}
+			}
 
+		}
+		else {
+			for (int row = 0; row < OutputSize; row++) {
+				for (int col = 0; col < HiddenLayerSize; col++) {
+					OutputLayer.GetLayerWeights()[row][col] -= FirstHiddenLayer.GetLayerActivatedNeurons()[col] * OutputLayer.GetLayerErrorDeltas()[row] * InitialLearningRate;
+				}
+			}
+			for (int row = 0; row < HiddenLayerSize; row++) {
+				for (int col = 0; col < InputSize; col++) {
+					FirstHiddenLayer.GetLayerWeights()[row][col] -= InputLayer.GetLayerActivatedNeurons()[col] * FirstHiddenLayer.GetLayerErrorDeltas()[row] * InitialLearningRate;
+				}
+			}
+		}
 	}
 	void BackPropBiases() {
-
+		if (HiddenLayerCount > 1) {
+			for (int num = 0; num < OutputSize; num++) {
+				OutputLayer.GetLayerBiases()[num] -= OutputLayer.GetLayerErrorDeltas()[num] * InitialLearningRate;
+			}
+			for (int index = HiddenLayerCount - 2; index >= 0; index--) {
+				for (int num = 0; num < HiddenLayerSize; num++) {
+					HiddenLayers[index].GetLayerBiases()[num] -= HiddenLayers[index].GetLayerErrorDeltas()[num] * InitialLearningRate;
+				}
+			}
+			for (int num = 0; num < OutputSize; num++) {
+				FirstHiddenLayer.GetLayerBiases()[num] -= FirstHiddenLayer.GetLayerErrorDeltas()[num] * InitialLearningRate;
+			}
+		}
 	}
 	
 public:
@@ -124,6 +182,10 @@ public:
 			HiddenLayers[0].CalcForwardProp(FirstHiddenLayer);
 		}
 		OutputLayer.CalcForwardProp(HiddenLayers.back());
+		if (CurrentTargetIndex == GetMaxValue(OutputLayer.GetLayerActivatedNeurons())) {
+			count++;
+		}
+		
 	}
 	void PropogateBackwards() {
 		BackPropActivations();
@@ -170,5 +232,10 @@ public:
 			PropogateBackwards();
 		}
 		
+	}
+	void PrintOutput() const {
+		OutputLayer.print();
+		std::cout << (float)count/10000 << std::endl;
+
 	}
 };

@@ -67,7 +67,7 @@ public:
 	}
 	
 	Layer()
-		:type(ActivationType::NONE)
+		:type(ActivationType::SIGMOID)
 	{
 		SetActivationFunction();
 		SetActivatedNeurons();
@@ -79,7 +79,13 @@ public:
 	const Matrix<CurLayerSize, PrevLayerSize>& GetLayerWeights() const {
 		return LayerWeights;
 	}
+	Matrix<CurLayerSize, PrevLayerSize>& GetLayerWeights() {
+		return LayerWeights;
+	}
 	const Vector<CurLayerSize>& GetLayerBiases() const {
+		return LayerBiases;
+	}
+	Vector<CurLayerSize>& GetLayerBiases() {
 		return LayerBiases;
 	}
 	const Vector<CurLayerSize>& GetLayerErrorDeltas() const {
@@ -114,9 +120,8 @@ public:
 		LayerNeurons = (LayerWeights * PrevLayer.GetLayerActivatedNeurons()) + LayerBiases;
 		SetActivatedNeurons();
 	}
-	void print() {
-		std::cout << LayerNeurons << std::endl;
-		std::cout << LayerWeights << std::endl;
+	void print() const {
+		std::cout << LayerActivatedNeurons << std::endl;
 	}
 };
 

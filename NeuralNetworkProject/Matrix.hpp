@@ -21,7 +21,7 @@ public:
 		AdjustSize();
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
-				MatrixArray[row][col] = 0;
+				MatrixArray[row][col] = -1 + (float)rand() / RAND_MAX;
 			}
 		}
 	}

@@ -12,7 +12,7 @@ public:
 		VectorArray.reserve(size);
 		VectorArray.resize(size);
 		for (int index = 0; index < size; index++) {
-			VectorArray[index] = 0;
+			VectorArray[index] = -1+(float)rand() / RAND_MAX;
 		}
 	}
 	Vector(const std::array<double, size>& array) {

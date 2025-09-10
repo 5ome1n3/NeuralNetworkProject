@@ -9,15 +9,16 @@
 
 
 int main(int argc, char* argv[]) {
+    srand(time(0));
     const int InputSize = 784;
     const int OutputSize = 10;
-    const int LayerCount = 5;
+    const int LayerCount = 2;
     const int LayerSize = 16;
     int LearningRate = 0.5;
     NeuralNetwork<InputSize, OutputSize, LayerSize, LayerCount> nn(LearningRate, SIGMOID);
     
     nn.LoadTrainingData("mnist_train.csv", 10000);
-
+    nn.PrintOutput();
     nn.Train();
-
+    nn.PrintOutput();
 }
