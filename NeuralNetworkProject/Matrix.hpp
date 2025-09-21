@@ -21,7 +21,10 @@ public:
 		AdjustSize();
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
-				MatrixArray[row][col] = -1 + (float)rand() / RAND_MAX;
+				if (cols > 0) {
+					//MatrixArray[row][col] = rand() % 5;
+					MatrixArray[row][col] = -1 + (((float)rand() / RAND_MAX) * 2);
+				}
 			}
 		}
 	}
@@ -54,7 +57,7 @@ public:
 
 	const Matrix<cols, rows> GetTransposed() const {
 		Matrix<cols, rows> matrix;
-		for (int row = 0; rows < rows; row++) {
+		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < cols; col++) {
 				matrix[col][row] = MatrixArray[row][col];
 			}
@@ -81,11 +84,14 @@ public:
 		return MatrixArray[index];
 	}
 	const std::vector<double>& operator[](int index) const {
+		if (index > rows) {
+			throw std::exception();
+		}
 		return MatrixArray[index];
 	}
 
 	template<int NewCols>
-	Matrix<rows, NewCols> operator*(Matrix<cols, NewCols> matrix) const {
+	Matrix<rows, NewCols> operator*(Matrix<cols, NewCols> matrix)  {
 		Matrix<rows, NewCols> result;
 		for (int row = 0; row < rows; row++) {
 			for (int col = 0; col < NewCols; col++) {
@@ -116,13 +122,17 @@ public:
 		return result;
 	}
 	Vector<rows> operator*(const Vector<cols>& vector) const {
-		Vector<rows> result;
-		for (int row = 0; row < rows; row++) {
-			for (int index = 0; index < cols; index++) {
-				result[row] += MatrixArray[row][index] * vector[index];
+		//std::cout << vector << std::endl;
+		Vector<rows> temp;
+		for (int i = 0; i < rows; i++) {
+			double sum = 0;
+			for (int x = 0; x < cols; x++) {
+				sum += MatrixArray[i][x] * vector[x];
 			}
+			temp[i] = sum;
+			
 		}
-		return result;
+		return temp;
 	}
 };
 

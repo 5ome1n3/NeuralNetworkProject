@@ -365,3 +365,5 @@ FodyWeavers.xsd
 # train and test data
 NeuralNetworkProject/mnist_train.csv
 NeuralNetworkProject/mnist_test.csv
+NeuralNetworkProject/fashion-mnist_test.csv
+NeuralNetworkProject/fashion-mnist_train.csv

@@ -12,7 +12,7 @@ public:
 		VectorArray.reserve(size);
 		VectorArray.resize(size);
 		for (int index = 0; index < size; index++) {
-			VectorArray[index] = -1+(float)rand() / RAND_MAX;
+			VectorArray[index] = 0;
 		}
 	}
 	Vector(const std::array<double, size>& array) {
@@ -87,10 +87,10 @@ public:
 		}
 		return temp;
 	}
-	Vector<size> operator*(const int value) const {
+	Vector<size> operator*(const double value) const {
 		Vector<size> temp;
 		for (int index = 0; index < size; index++) {
-			temp[index] *= value;
+			temp[index] = VectorArray[index] * value;
 		}
 		return temp;
 	}
@@ -104,6 +104,12 @@ public:
 	const Vector<size>& operator/=(const Vector<size>& vector) {
 		for (int index = 0; index < size; index++) {
 			VectorArray[index] /= vector[index];
+		}
+		return *this;
+	}
+	const Vector<size>& operator/=(const double value) {
+		for (int index = 0; index < size; index++) {
+			VectorArray[index] /= value;
 		}
 		return *this;
 	}
