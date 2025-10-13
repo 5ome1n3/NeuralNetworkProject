@@ -8,10 +8,8 @@
 #include "NeuralNetwork.hpp"
 
 
-
 int main(int argc, char* argv[]) {
     srand(time(0));
-    std::cout << rand() << std::endl;
     const int InputSize = 784;
     const int OutputSize = 10;
     const int LayerCount = 2;
@@ -20,11 +18,15 @@ int main(int argc, char* argv[]) {
     double LearningRate = 0.0005;
     NeuralNetwork<InputSize, OutputSize, LayerSize, LayerCount> nn(LearningRate, RELU);
     
-    nn.LoadData("mnist_train.csv", DataRows, false);
+    if (!nn.LoadData("mnist_train.csv", DataRows, false)) {
+        return -1;
+    }
     nn.Train();
-    nn.LoadData("mnist_test.csv", 10000, false);
+    if (!nn.LoadData("mnist_test.csv", 10000, false)) {
+        return -1;
+    }
     nn.Run();
     nn.PrintOutput();
-    
+    return 0;
 
 }

@@ -4,6 +4,7 @@
 #include <exception>
 #include <fstream>
 #include <string>
+#include <math.h>
 
 #include "Matrix.hpp"
 #include "Vector.hpp"
@@ -209,8 +210,12 @@ public:
 		BackPropBiases();
 	}
 	using CSV_FILE = const char*;
-	void LoadData(CSV_FILE FileName, size_t RowNum, const bool RemoveFirstLine) {
+	bool LoadData(CSV_FILE FileName, size_t RowNum, const bool RemoveFirstLine) {
 		std::ifstream TrainingData(FileName);
+		if (!TrainingData) {
+			std::cout << "file does not exist" << std::endl;
+			return false;
+		}
 		ProcessingData.clear();
 		char character;
 		if (RemoveFirstLine) {
@@ -253,6 +258,8 @@ public:
 		ProcessingData.resize(index);
 		ProcessingData.shrink_to_fit();
 		TrainingData.close();
+		
+		return true;
 	}
 	void Train() {
 		for (const std::vector<double>& row : ProcessingData) {
