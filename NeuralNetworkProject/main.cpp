@@ -17,12 +17,12 @@ int main(int argc, char* argv[]) {
     const int DataRows = 10000;
     double LearningRate = 0.0005;
     NeuralNetwork<InputSize, OutputSize, LayerSize, LayerCount> nn(LearningRate, RELU);
-    
-    if (!nn.LoadData("mnist_train.csv", DataRows, false)) {
+    if (!nn.LoadData("mnist_train.csv", DataRows, true)) {
         return -1;
     }
     nn.Train();
-    if (!nn.LoadData("mnist_test.csv", 10000, false)) {
+    
+    if (!nn.LoadData("mnist_test.csv", 10000, true)) {
         return -1;
     }
     nn.Run();

@@ -58,6 +58,7 @@ private:
 	int CurrentTargetIndex;
 	int count = 0;
 	ActivationType type;
+	int batch_size = 20;
 	void BackPropActivations() {
 		Vector<OutputSize>(*OutputDerivativeActivationFunc)(const Vector<OutputSize>& vector);
 		Vector<HiddenLayerSize>(*HiddenLayerDerivativeActivationFunc)(const Vector<HiddenLayerSize>& vector);
@@ -197,8 +198,9 @@ public:
 		for (int index = 1; index < HiddenLayers.size();index++) {
 			HiddenLayers[index].CalcForwardProp(HiddenLayers[index - 1]);
 		}
-
+		auto temp = OutputLayer.get
 		OutputLayer.CalcForwardProp(HiddenLayers.back());
+		OutputLayer
 		if (CurrentTargetIndex == GetMaxValueIndex(OutputLayer.GetLayerActivatedNeurons())) {
 			count++;
 		}
@@ -213,9 +215,10 @@ public:
 	bool LoadData(CSV_FILE FileName, size_t RowNum, const bool RemoveFirstLine) {
 		std::ifstream TrainingData(FileName);
 		if (!TrainingData) {
-			std::cout << "file does not exist" << std::endl;
+			std::cout << "file " << FileName << " does not exist" << std::endl;
 			return false;
 		}
+		
 		ProcessingData.clear();
 		char character;
 		if (RemoveFirstLine) {
@@ -235,11 +238,14 @@ public:
 		}
 		int index = 0;
 		while (TrainingData.get(character) && index < RowNum) {
+			
 			if (character == ',') {
+				
+				
 				row.push_back(std::stod(number));
 				number.clear();
 			}
-			else if (character == '\n') {
+			else if (character == '\n' && number.size() != 0) {
 				row.push_back(std::stod(number));
 				number.clear();
 				ProcessingData[index] = row;
