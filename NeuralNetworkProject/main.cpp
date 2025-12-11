@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     nn.Train();
-    
+    nn.PrintOutput();
     if (!nn.LoadData("mnist_test.csv", 10000, true)) {
         return -1;
     }

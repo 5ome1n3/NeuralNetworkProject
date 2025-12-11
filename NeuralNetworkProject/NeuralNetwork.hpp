@@ -198,9 +198,7 @@ public:
 		for (int index = 1; index < HiddenLayers.size();index++) {
 			HiddenLayers[index].CalcForwardProp(HiddenLayers[index - 1]);
 		}
-		auto temp = OutputLayer.get
 		OutputLayer.CalcForwardProp(HiddenLayers.back());
-		OutputLayer
 		if (CurrentTargetIndex == GetMaxValueIndex(OutputLayer.GetLayerActivatedNeurons())) {
 			count++;
 		}
